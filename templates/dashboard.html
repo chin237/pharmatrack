@@ -1,0 +1,270 @@
+ {% extends "base.html" %}
+{% block title %}PharmaTrack Dashboard{% endblock %}
+
+{% block content %}
+<!-- Global Alert Banner -->
+<div class="bg-primary text-white px-6 py-4 rounded-lg flex items-center justify-between border-l-8 border-error">
+    <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+        <div>
+            <p class="font-headline-md text-headline-md">Critical Alerts Detected</p>
+            <p class="font-body-md text-body-md opacity-80">3 Expired items and 12 items below threshold require
+                immediate action.</p>
+        </div>
+    </div>
+    <button
+        class="bg-error text-white font-label-bold text-label-bold px-6 py-2 rounded-xl hover:opacity-90 transition-opacity">
+        View Action List
+    </button>
+</div>
+
+<!-- Stat Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+    <div class="bg-white border border-outline-variant p-6 rounded-lg">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-2">Total Products
+        </p>
+        <div class="flex items-end justify-between">
+            <h3 class="font-display text-display">1,240</h3>
+            <span
+                class="text-on-tertiary-container font-label-bold text-label-bold bg-tertiary-fixed-dim/20 px-2 py-0.5 rounded">+2.4%</span>
+        </div>
+    </div>
+    <div class="bg-white border border-outline-variant p-6 rounded-lg">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-2">Low Stock</p>
+        <div class="flex items-end justify-between">
+            <h3 class="font-display text-display text-secondary">12</h3>
+            <span class="material-symbols-outlined text-secondary">inventory</span>
+        </div>
+    </div>
+    <div class="bg-white border border-outline-variant p-6 rounded-lg">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-2">Expiring Soon
+        </p>
+        <div class="flex items-end justify-between">
+            <h3 class="font-display text-display text-error">8</h3>
+            <span class="material-symbols-outlined text-error">event_busy</span>
+        </div>
+    </div>
+    <div class="bg-white border border-outline-variant p-6 rounded-lg">
+        <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider mb-2">Unreported
+            Losses</p>
+        <div class="flex items-end justify-between">
+            <h3 class="font-display text-display text-on-surface">3</h3>
+            <span class="material-symbols-outlined opacity-40">report_off</span>
+        </div>
+    </div>
+</div>
+
+<!-- Multi-Column Operational Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+    <!-- Low Stock Alerts Panel -->
+    <div class="lg:col-span-2 bg-white border border-outline-variant rounded-lg flex flex-col h-[400px]">
+        <div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+            <h2 class="font-headline-md text-headline-md flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary">priority_high</span>
+                Low Stock Alerts
+            </h2>
+            <button class="text-secondary font-label-bold text-label-bold hover:underline">See All</button>
+        </div>
+        <div class="overflow-x-auto flex-grow">
+            <table class="w-full text-left border-collapse">
+                <thead class="sticky top-0 bg-surface-container-low border-b border-outline-variant z-10">
+                    <tr>
+                        <th
+                            class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold text-on-surface-variant">
+                            Product Name</th>
+                        <th
+                            class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold text-on-surface-variant">
+                            SKU</th>
+                        <th
+                            class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold text-on-surface-variant">
+                            Stock</th>
+                        <th
+                            class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold text-on-surface-variant">
+                            Threshold</th>
+                        <th
+                            class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold text-on-surface-variant">
+                            Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-body-md">
+                    <!--
+  Mock rows below. Once your Flask route passes real low-stock products,
+  replace with:
+  {% for item in low_stock_items %}
+  <tr class="zebra-row"> ... {{ item.name }} ... </tr>
+  {% endfor %}
+-->
+                    <tr class="zebra-row">
+                        <td class="py-cell-padding-v px-cell-padding-h font-medium">Amoxicillin 500mg</td>
+                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono">AMX-500-22</td>
+                        <td class="py-cell-padding-v px-cell-padding-h text-error font-bold">5 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">20 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">
+                            <button
+                                class="bg-secondary text-white px-3 py-1 rounded text-xs font-label-bold">Reorder</button>
+                        </td>
+                    </tr>
+                    <tr class="zebra-row">
+                        <td class="py-cell-padding-v px-cell-padding-h font-medium">Paracetamol 1000mg</td>
+                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono">PARA-1K-09</td>
+                        <td class="py-cell-padding-v px-cell-padding-h text-error font-bold">12 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">50 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">
+                            <button
+                                class="bg-secondary text-white px-3 py-1 rounded text-xs font-label-bold">Reorder</button>
+                        </td>
+                    </tr>
+                    <tr class="zebra-row">
+                        <td class="py-cell-padding-v px-cell-padding-h font-medium">Cetirizine Syrup</td>
+                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono">CET-SYP-11</td>
+                        <td class="py-cell-padding-v px-cell-padding-h text-secondary font-bold">8 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">10 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">
+                            <button
+                                class="bg-secondary text-white px-3 py-1 rounded text-xs font-label-bold">Reorder</button>
+                        </td>
+                    </tr>
+                    <tr class="zebra-row">
+                        <td class="py-cell-padding-v px-cell-padding-h font-medium">Ibuprofen 400mg</td>
+                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono">IBU-400-01</td>
+                        <td class="py-cell-padding-v px-cell-padding-h text-error font-bold">2 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">30 units</td>
+                        <td class="py-cell-padding-v px-cell-padding-h">
+                            <button
+                                class="bg-secondary text-white px-3 py-1 rounded text-xs font-label-bold">Reorder</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Expiry Watch Panel -->
+    <div class="bg-white border border-outline-variant rounded-lg flex flex-col h-[400px]">
+        <div class="p-4 border-b border-outline-variant bg-surface-container-low">
+            <h2 class="font-headline-md text-headline-md flex items-center gap-2">
+                <span class="material-symbols-outlined text-error">history</span>
+                Expiry Watch
+            </h2>
+        </div>
+        <div class="p-4 overflow-y-auto flex-grow custom-scrollbar space-y-4">
+            <div class="border border-error/30 bg-error-container/10 p-3 rounded-lg flex items-start gap-3">
+                <div class="w-2 h-full bg-error self-stretch rounded-full"></div>
+                <div class="flex-grow">
+                    <p class="font-label-bold text-label-bold text-error">EXPIRED</p>
+                    <p class="font-body-md text-body-md font-bold">Augmentin Duo 1g</p>
+                    <p class="text-body-sm text-on-surface-variant">Batch: #AUG-992 • Exp: 12 Oct 2023</p>
+                </div>
+                <span class="material-symbols-outlined text-error">delete_forever</span>
+            </div>
+            <div class="border border-amber-500/30 bg-amber-50 p-3 rounded-lg flex items-start gap-3">
+                <div class="w-2 h-full bg-amber-500 self-stretch rounded-full"></div>
+                <div class="flex-grow">
+                    <p class="font-label-bold text-label-bold text-amber-700">2 MONTHS LEFT</p>
+                    <p class="font-body-md text-body-md font-bold">Salbutamol Inhaler</p>
+                    <p class="text-body-sm text-on-surface-variant">Batch: #SAL-102 • Exp: Jan 2024</p>
+                </div>
+                <span class="material-symbols-outlined text-amber-600">notification_important</span>
+            </div>
+            <div class="border border-amber-500/30 bg-amber-50 p-3 rounded-lg flex items-start gap-3">
+                <div class="w-2 h-full bg-amber-500 self-stretch rounded-full"></div>
+                <div class="flex-grow">
+                    <p class="font-label-bold text-label-bold text-amber-700">3 MONTHS LEFT</p>
+                    <p class="font-body-md text-body-md font-bold">Metformin 500mg</p>
+                    <p class="text-body-sm text-on-surface-variant">Batch: #MET-441 • Exp: Feb 2024</p>
+                </div>
+                <span class="material-symbols-outlined text-amber-600">schedule</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Activity Feed Section -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-gutter">
+    <div class="lg:col-span-3 bg-white border border-outline-variant rounded-lg overflow-hidden">
+        <div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+            <h2 class="font-headline-md text-headline-md">Recent Stock Movements</h2>
+            <div class="flex gap-2">
+                <button
+                    class="px-3 py-1 border border-outline-variant rounded-lg text-body-sm hover:bg-surface-container-high transition-colors">Export
+                    CSV</button>
+                <button
+                    class="px-3 py-1 border border-outline-variant rounded-lg text-body-sm hover:bg-surface-container-high transition-colors">Filter</button>
+            </div>
+        </div>
+        <div class="divide-y divide-outline-variant">
+            <div class="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+                        <span class="material-symbols-outlined">add_circle</span>
+                    </div>
+                    <div>
+                        <p class="font-body-md text-body-md">Received <span class="font-bold">100 units</span> of
+                            Paracetamol 500mg</p>
+                        <p class="text-body-sm text-on-surface-variant">Source: Central Depot • Ref: #GRN-2883</p>
+                    </div>
+                </div>
+                <p class="text-body-sm text-on-surface-variant font-data-mono">14:32 PM</p>
+            </div>
+            <div class="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                        <span class="material-symbols-outlined">remove_circle</span>
+                    </div>
+                    <div>
+                        <p class="font-body-md text-body-md">Dispatched <span class="font-bold">24 units</span> to
+                            Clinical Ward B</p>
+                        <p class="text-body-sm text-on-surface-variant">Authorized by: Dr. Njoh • Ref: #REQ-112</p>
+                    </div>
+                </div>
+                <p class="text-body-sm text-on-surface-variant font-data-mono">11:15 AM</p>
+            </div>
+            <div class="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-red-100 text-red-700 flex items-center justify-center">
+                        <span class="material-symbols-outlined">error</span>
+                    </div>
+                    <div>
+                        <p class="font-body-md text-body-md">Adjustment: <span class="font-bold">-3 units</span>
+                            (Damaged Package)</p>
+                        <p class="text-body-sm text-on-surface-variant">Vinsulin 40iu • Batch: #VIN-001</p>
+                    </div>
+                </div>
+                <p class="text-body-sm text-on-surface-variant font-data-mono">09:45 AM</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions / Scanner -->
+    <div class="bg-primary-container text-on-primary-container p-6 rounded-lg flex flex-col justify-between">
+        <div>
+            <h2 class="text-white font-headline-md text-headline-md mb-4">Quick Batch Entry</h2>
+            <p class="text-body-sm opacity-80 mb-6">Scan barcodes or enter SKUs manually to update inventory levels
+                instantly.</p>
+            <div class="space-y-4">
+                <button
+                    class="w-full py-4 bg-secondary-container text-white rounded-xl flex items-center justify-center gap-3 font-label-bold text-label-bold hover:scale-[0.98] transition-transform">
+                    <span class="material-symbols-outlined">barcode_scanner</span>
+                    Open Scanner
+                </button>
+                <button
+                    class="w-full py-3 border border-on-primary-container/30 text-white rounded-xl flex items-center justify-center gap-3 font-label-bold text-label-bold hover:bg-white/5">
+                    <span class="material-symbols-outlined">edit_note</span>
+                    Manual Entry
+                </button>
+            </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-on-primary-container/20">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="font-label-bold text-label-bold text-white">System Healthy</span>
+            </div>
+            <p class="text-[10px] uppercase opacity-50 tracking-tighter">Database: Cameroon-South-Node-04</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+{% endblock %}

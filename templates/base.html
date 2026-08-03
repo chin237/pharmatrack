@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}PharmaTrack{% endblock %}</title>
+
+    <!--
+  ⚠️ OFFLINE WARNING — these lines load from the internet.
+  Fine while developing with a connection. Fix before packaging
+  (see static/README-offline-fix.md).
+-->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+
+    <script id="tailwind-config" src="{{ url_for('static', filename='tailwind-config.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="flex min-h-screen text-on-surface">
+
+    <!-- SideNavBar (shared across every screen) -->
+    <aside
+        class="docked fixed left-0 top-0 h-full w-[240px] flex flex-col bg-primary-container py-margin-page border-r border-outline-variant z-50">
+        <div class="px-6 mb-10">
+            <h1 class="text-headline-md font-headline-md font-bold text-surface-bright">PharmaTrack</h1>
+            <p class="font-body-md text-body-md text-on-primary-container opacity-70">Pharmacy Manager</p>
+        </div>
+        <nav class="flex-grow">
+            <a class="flex items-center gap-stack-gap {% if active_page == 'dashboard' %}bg-secondary-container text-on-secondary-container border-l-4 border-secondary{% else %}text-on-primary-container hover:bg-surface-variant/10{% endif %} px-4 py-3 font-label-bold text-label-bold transition-all duration-150"
+                href="{{ url_for('dashboard') }}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a class="flex items-center gap-stack-gap {% if active_page == 'inventory' %}bg-secondary-container text-on-secondary-container border-l-4 border-secondary{% else %}text-on-primary-container hover:bg-surface-variant/10{% endif %} px-4 py-3 font-label-bold text-label-bold transition-all duration-150"
+                href="{{ url_for('product_list') }}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span>Inventory</span>
+            </a>
+            <a class="flex items-center gap-stack-gap {% if active_page == 'movements' %}bg-secondary-container text-on-secondary-container border-l-4 border-secondary{% else %}text-on-primary-container hover:bg-surface-variant/10{% endif %} px-4 py-3 font-label-bold text-label-bold transition-all duration-150"
+                href="{{ url_for('record_movement') }}">
+                <span class="material-symbols-outlined">swap_horiz</span>
+                <span>Movements</span>
+            </a>
+            <a class="flex items-center gap-stack-gap {% if active_page == 'loss_reports' %}bg-secondary-container text-on-secondary-container border-l-4 border-secondary{% else %}text-on-primary-container hover:bg-surface-variant/10{% endif %} px-4 py-3 font-label-bold text-label-bold transition-all duration-150"
+                href="{{ url_for('loss_reports') }}">
+                <span class="material-symbols-outlined">report_off</span>
+                <span>Loss Reports</span>
+            </a>
+            <a class="flex items-center gap-stack-gap text-on-primary-container hover:bg-surface-variant/10 px-4 py-3 font-body-md text-body-md transition-colors"
+                href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span>Settings</span>
+            </a>
+        </nav>
+        <div class="mt-auto px-4">
+            <div class="flex items-center gap-2 p-3 rounded-lg bg-surface-variant/10 text-on-primary-container">
+                <span class="material-symbols-outlined text-green-500 text-sm">cloud_done</span>
+                <span class="font-label-bold text-label-bold">Sync Status</span>
+            </div>
+            <div class="mt-4 flex items-center gap-3 px-2">
+                <!-- Initials avatar, replaces Stitch's remote-hosted profile photo (another offline dependency) -->
+                <div
+                    class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed font-bold text-label-bold">
+                    JD</div>
+                <div class="overflow-hidden">
+                    <!-- <p class="font-label-bold text-label-bold text-white truncate">Jean Dupont</p> -->
+                    <p class="text-[10px] text-on-primary-container uppercase">Admin</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Canvas -->
+    <div class="ml-[240px] flex-grow flex flex-col min-w-0 h-screen overflow-y-auto">
+
+        <!-- TopNavBar (shared across every screen) -->
+        <header
+            class="docked full-width top-0 sticky z-40 flex justify-between items-center h-16 px-margin-page bg-surface border-b border-outline-variant">
+            <div class="flex items-center gap-4 flex-grow">
+                <div class="relative w-full max-w-md">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                    <input
+                        class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-body-md focus:outline-none focus:ring-1 focus:ring-secondary"
+                        placeholder="Search inventory, batches, or SKU..." type="text" />
+                </div>
+            </div>
+            <div class="flex items-center gap-4 ml-gutter">
+                <!-- Sync/offline indicator: static markup for now — wire up to real navigator.onLine + last-sync-timestamp later -->
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-error-container/20 rounded-lg text-error">
+                    <span class="material-symbols-outlined text-base">wifi_off</span>
+                    <span class="font-label-bold text-label-bold">Offline</span>
+                    <span class="text-[10px] opacity-60">10m ago</span>
+                </div>
+                <button
+                    class="p-2 hover:bg-surface-container-high transition-colors rounded-xl text-on-surface-variant active:scale-95"
+                    id="sync-button">
+                    <span class="material-symbols-outlined">sync</span>
+                </button>
+                <button
+                    class="p-2 hover:bg-surface-container-high transition-colors rounded-xl text-on-surface-variant relative active:scale-95">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+                </button>
+                <button
+                    class="p-2 hover:bg-surface-container-high transition-colors rounded-xl text-on-surface-variant active:scale-95">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Screen-specific content goes here -->
+        <main class="p-margin-page space-y-6">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}PharmaTrack - Inventory Management{% endblock %}
+
+{% block content %}
+<!-- Content Header -->
+<div class="flex justify-between items-end mb-6">
+    <div>
+        <h2 class="font-display text-display text-primary">Product Inventory</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage and track pharmaceutical stock levels
+            and expiry dates.</p>
+    </div>
+    <button
+        class="flex items-center gap-2 bg-secondary text-on-secondary px-6 py-2.5 rounded-lg font-label-bold text-label-bold hover:opacity-90 active:scale-95 transition-all shadow-sm">
+        <span class="material-symbols-outlined">add</span>
+        Add Product
+    </button>
+</div>
+
+<!-- Filter Bar -->
+<div
+    class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 mb-6 flex flex-wrap gap-4 items-center">
+    <div class="flex flex-col gap-1.5 min-w-[180px]">
+        <label class="text-label-bold font-label-bold text-on-surface-variant">Category</label>
+        <select
+            class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 font-body-md text-body-md focus:ring-secondary">
+            <option>All Categories</option>
+            <option>Antibiotics</option>
+            <option>Analgesics</option>
+            <option>Antivirals</option>
+            <option>Supplements</option>
+        </select>
+    </div>
+    <div class="flex flex-col gap-1.5 min-w-[180px]">
+        <label class="text-label-bold font-label-bold text-on-surface-variant">Dosage Form</label>
+        <select
+            class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 font-body-md text-body-md focus:ring-secondary">
+            <option>All Forms</option>
+            <option>Capsule</option>
+            <option>Tablet</option>
+            <option>Syrup</option>
+            <option>Injection</option>
+        </select>
+    </div>
+    <div class="flex flex-col gap-1.5 min-w-[180px]">
+        <label class="text-label-bold font-label-bold text-on-surface-variant">Stock Status</label>
+        <select
+            class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 font-body-md text-body-md focus:ring-secondary">
+            <option>All Levels</option>
+            <option>In Stock</option>
+            <option>Low Stock</option>
+            <option>Out of Stock</option>
+        </select>
+    </div>
+    <div class="flex flex-col gap-1.5 min-w-[180px]">
+        <label class="text-label-bold font-label-bold text-on-surface-variant">Expiry Status</label>
+        <select
+            class="bg-surface border border-outline-variant rounded-lg px-3 py-1.5 font-body-md text-body-md focus:ring-secondary">
+            <option>All</option>
+            <option>Healthy</option>
+            <option>Expiring &lt; 3 Months</option>
+            <option>Expired</option>
+        </select>
+    </div>
+    <div class="mt-auto pb-0.5">
+        <button
+            class="px-4 py-2 text-secondary font-label-bold text-label-bold hover:bg-secondary/5 rounded-lg transition-colors">Clear
+            Filters</button>
+    </div>
+</div>
+
+<!-- Warning Banner -->
+<div
+    class="mb-6 bg-error-container text-on-error-container px-4 py-3 rounded-lg border-l-4 border-error flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">report</span>
+        <p class="font-label-bold text-label-bold">CRITICAL ALERT: 14 items have reached expiration date and 3 are in
+            critical low stock.</p>
+    </div>
+    <button class="bg-error text-on-error px-4 py-1 rounded font-label-bold text-[11px] uppercase tracking-wide">View
+        Affected</button>
+</div>
+
+<!--
+  Mock rows below (Stitch placeholder data). Once your Flask route passes
+  real products, replace <tbody> with:
+  {% for product in products %}
+  <tr> ... {{ product.name }} ... </tr>
+  {% endfor %}
+-->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+    <div class="overflow-x-auto table-container">
+        <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 bg-surface-container-low border-b border-outline-variant z-10">
+                <tr>
+                    <th class="px-cell-padding-h py-4 font-label-bold text-label-bold text-on-surface-variant">Product
+                        Name &amp; SKU</th>
+                    <th class="px-cell-padding-h py-4 font-label-bold text-label-bold text-on-surface-variant">Category
+                    </th>
+                    <th
+                        class="px-cell-padding-h py-4 font-label-bold text-label-bold text-on-surface-variant text-center">
+                        Dosage Form</th>
+                    <th
+                        class="px-cell-padding-h py-4 font-label-bold text-label-bold text-on-surface-variant text-right">
+                        Current Stock</th>
+                    <th
+                        class="px-cell-padding-h py-4 font-label-bold text-label-bold text-on-surface-variant text-center">
+                        Expiry Status</th>
+                    <th
+                        class="px-cell-padding-h py-4 font-label-bold text-label-bold text-on-surface-variant text-right">
+                        Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                {% for product in products %}
+                <tr class="hover:bg-surface-container-low transition-colors group">
+                    <td class="px-cell-padding-h py-cell-padding-v">
+                        <div class="flex flex-col">
+                            <span class="font-headline-md text-body-lg text-primary font-bold">{{ product.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-cell-padding-h py-cell-padding-v">
+                        <span class="bg-surface-variant/30 px-2 py-0.5 rounded text-body-sm font-body-sm">{{
+                            product.category }}</span>
+                    </td>
+                    <td class="px-cell-padding-h py-cell-padding-v text-center">
+                        <span class="text-body-md font-body-md">{{ product.dosage_form }}</span>
+                    </td>
+                    <td class="px-cell-padding-h py-cell-padding-v text-right">
+                        <div class="flex flex-col items-end">
+                            <span
+                                class="font-data-mono text-body-lg font-bold{% if product.current_stock < 100 %} text-error{% endif %}">{{
+                                "{:,}".format(product.current_stock) }}</span>
+                        </div>
+                    </td>
+                    <td class="px-cell-padding-h py-cell-padding-v text-center">
+                        {% if product.expiry_status == 'Fine' %}
+                        <span class="status-pill bg-on-tertiary-container/10 text-on-tertiary-container">Fine</span>
+                        {% elif product.expiry_status == 'Expiring Soon' %}
+                        <span class="status-pill bg-yellow-100 text-yellow-700">Expiring Soon</span>
+                        {% else %}
+                        <span class="status-pill bg-error-container text-error">Expired</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-cell-padding-h py-cell-padding-v text-right">
+                        <a href="{{ url_for('product_details', product_id=product.id) }}"
+                            class="text-secondary font-label-bold text-label-bold hover:underline px-2 py-1">View
+                            Details</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-cell-padding-h py-8 text-center text-on-surface-variant">No products yet.
+                        Run database/seed.py or add a product to get started.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination / Footer -->
+    <div class="bg-surface-container-low border-t border-outline-variant px-6 py-3 flex justify-between items-center">
+        <span class="text-body-sm font-body-sm text-on-surface-variant">Showing {{ products|length }} of {{
+            products|length }} products</span>
+        <div class="flex items-center gap-2">
+            <button class="p-1 hover:bg-surface-container-high rounded disabled:opacity-30" disabled="">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <div class="flex gap-1">
+                <button
+                    class="w-8 h-8 flex items-center justify-center rounded bg-secondary text-on-secondary font-label-bold text-label-bold">1</button>
+                <button
+                    class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-high font-label-bold text-label-bold">2</button>
+                <button
+                    class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-high font-label-bold text-label-bold">3</button>
+                <span class="px-1 self-end">...</span>
+                <button
+                    class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-high font-label-bold text-label-bold">64</button>
+            </div>
+            <button class="p-1 hover:bg-surface-container-high rounded">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Contextual FAB -->
+<button
+    class="fixed bottom-8 right-8 w-14 h-14 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform active:scale-95 group">
+    <span class="material-symbols-outlined">barcode_scanner</span>
+    <div
+        class="absolute right-full mr-4 px-3 py-1 bg-inverse-surface text-inverse-on-surface text-label-bold rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+        Scan Batch Barcode
+    </div>
+</button>
+{% endblock %}

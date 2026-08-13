@@ -7,7 +7,9 @@
     <div class="flex items-center gap-4">
         <span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
         <div>
-            <h3 class="font-label-bold text-label-bold text-on-error-container">URGENT: 14 UNREPORTED LOSSES DETECTED
+            <h3 class="font-label-bold text-label-bold text-on-error-container">
+                {% if unreported_count > 0 %}URGENT: {{ unreported_count }} UNREPORTED LOSS{{ 'ES' if unreported_count
+                != 1 else '' }} DETECTED{% else %}All losses reported{% endif %}
             </h3>
             <p class="font-body-sm text-body-sm text-on-error-container opacity-80">Regulatory submission required for
                 controlled substances within 48 hours.</p>
@@ -32,11 +34,11 @@
             <span class="material-symbols-outlined text-[18px]">filter_list</span>
             Filter
         </button>
-        <button
+        <a href="{{ url_for('export_loss_reports') }}"
             class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-lg font-label-bold text-label-bold hover:bg-surface-container-low transition-colors">
             <span class="material-symbols-outlined text-[18px]">download</span>
             Export CSV
-        </button>
+        </a>
         <!-- Wired to record_movement route — recording a loss is a movement type -->
         <a href="{{ url_for('record_movement') }}"
             class="flex items-center gap-2 bg-secondary text-on-secondary px-5 py-2.5 rounded-lg font-label-bold text-label-bold hover:opacity-95 shadow-sm">
@@ -53,9 +55,9 @@
             <span class="material-symbols-outlined">inventory</span>
         </div>
         <div>
-            <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Total Losses
-                (MTD)</p>
-            <p class="font-display text-headline-md text-on-surface">432 Items</p>
+            <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Total Loss
+                Events</p>
+            <p class="font-display text-headline-md text-on-surface">{{ total_losses }}</p>
         </div>
     </div>
     <div class="bg-error-container/30 p-5 border border-error/10 rounded-xl flex items-center gap-4">
@@ -64,7 +66,7 @@
         </div>
         <div>
             <p class="font-label-bold text-label-bold text-error uppercase tracking-wider">Unreported</p>
-            <p class="font-display text-headline-md text-error">14 Records</p>
+            <p class="font-display text-headline-md text-error">{{ unreported_count }} Records</p>
         </div>
     </div>
     <div class="bg-surface-container-lowest p-5 border border-outline-variant rounded-xl flex items-center gap-4">
@@ -75,7 +77,8 @@
         <div>
             <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Most Common
                 Reason</p>
-            <p class="font-display text-headline-md text-on-surface">Expiration</p>
+            <p class="font-display text-headline-md text-on-surface" style="font-size: 20px;">{{ most_common_reason }}
+            </p>
         </div>
     </div>
     <div class="bg-surface-container-lowest p-5 border border-outline-variant rounded-xl flex items-center gap-4">
@@ -84,9 +87,9 @@
             <span class="material-symbols-outlined">monitoring</span>
         </div>
         <div>
-            <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Shrinkage Rate
+            <p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-wider">Total Units Lost
             </p>
-            <p class="font-display text-headline-md text-on-surface">1.2%</p>
+            <p class="font-display text-headline-md text-on-surface">{{ total_units_lost }}</p>
         </div>
     </div>
 </div>
@@ -101,13 +104,13 @@
     <div class="p-5 border-b border-outline-variant flex items-center justify-between bg-surface-container-low/50">
         <h2 class="font-headline-md text-headline-md text-on-surface">Loss History</h2>
         <div class="flex items-center gap-4">
-            <span class="text-body-sm font-body-sm text-on-surface-variant">Showing 14 Unreported out of 156
-                total</span>
-            <button
+            <span class="text-body-sm font-body-sm text-on-surface-variant">Showing {{ unreported_count }} unreported
+                out of {{ total_losses }} total</span>
+            <a href="{{ url_for('export_loss_reports') }}?unreported=1"
                 class="flex items-center gap-2 bg-on-tertiary-container text-white px-4 py-2 rounded-lg font-label-bold text-label-bold hover:bg-opacity-90 transition-colors shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">publish</span>
                 EXPORT UNREPORTED FOR AUTHORITY SUBMISSION
-            </button>
+            </a>
         </div>
     </div>
     <div class="overflow-x-auto custom-scrollbar">
@@ -143,158 +146,63 @@
                 </tr>
             </thead>
             <tbody class="font-body-md text-body-md text-on-surface divide-y divide-outline-variant">
-                <tr class="hover:bg-surface-container transition-colors group">
+                {% for loss in losses %}
+                <tr
+                    class="hover:bg-surface-container transition-colors group {% if loss.reported %}opacity-80{% endif %}">
                     <td class="px-cell-padding-h py-4">
                         <input class="rounded-sm border-outline-variant text-secondary focus:ring-secondary"
                             type="checkbox" />
                     </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono">Oct 24, 2023</td>
+                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono">{{ loss.date }}</td>
                     <td class="px-cell-padding-h py-4">
-                        <p class="font-label-bold text-label-bold">Amoxicillin 500mg</p>
-                        <p class="text-xs text-on-surface-variant">Capsules (Blister Pack)</p>
+                        <p class="font-label-bold text-label-bold">{{ loss.product_name }}</p>
+                        <p class="text-xs text-on-surface-variant">{{ 'Controlled Substance' if loss.is_controlled else
+                            '' }}</p>
                     </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono text-on-surface-variant">BCH-8821-X
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-right font-bold">120 Units</td>
+                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono text-on-surface-variant">{{
+                        loss.batch_number }}</td>
+                    <td class="px-cell-padding-h py-4 text-right font-bold">{{ loss.quantity }} Units</td>
                     <td class="px-cell-padding-h py-4">
-                        <span class="bg-surface-container-high px-2 py-1 rounded text-xs font-label-bold">Damaged
-                            Packaging</span>
-                    </td>
-                    <td class="px-cell-padding-h py-4">
-                        <div
-                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-label-bold border border-error/10">
-                            <span class="w-2 h-2 bg-error rounded-full animate-pulse"></span>
-                            UNREPORTED
-                        </div>
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-center">
-                        <button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-surface-container transition-colors">
-                    <td class="px-cell-padding-h py-4">
-                        <input class="rounded-sm border-outline-variant text-secondary focus:ring-secondary"
-                            type="checkbox" />
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono">Oct 23, 2023</td>
-                    <td class="px-cell-padding-h py-4">
-                        <p class="font-label-bold text-label-bold">Paracetamol Liquid</p>
-                        <p class="text-xs text-on-surface-variant">100ml Syrup Bottle</p>
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono text-on-surface-variant">BCH-4452-Y
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-right font-bold">15 Units</td>
-                    <td class="px-cell-padding-h py-4">
-                        <span
-                            class="bg-error-container/20 text-error px-2 py-1 rounded text-xs font-label-bold">Expired</span>
+                        <span class="bg-surface-container-high px-2 py-1 rounded text-xs font-label-bold">{{ loss.reason
+                            }}</span>
                     </td>
                     <td class="px-cell-padding-h py-4">
-                        <div
-                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-label-bold border border-error/10">
-                            <span class="w-2 h-2 bg-error rounded-full animate-pulse"></span>
-                            UNREPORTED
-                        </div>
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-center">
-                        <button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-surface-container transition-colors opacity-80">
-                    <td class="px-cell-padding-h py-4">
-                        <input class="rounded-sm border-outline-variant text-secondary focus:ring-secondary"
-                            type="checkbox" />
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono">Oct 20, 2023</td>
-                    <td class="px-cell-padding-h py-4">
-                        <p class="font-label-bold text-label-bold">Metformin 850mg</p>
-                        <p class="text-xs text-on-surface-variant">Tablets (Bulk Jar)</p>
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono text-on-surface-variant">BCH-1120-Z
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-right font-bold">500 Units</td>
-                    <td class="px-cell-padding-h py-4">
-                        <span class="bg-surface-container-high px-2 py-1 rounded text-xs font-label-bold">Inventory
-                            Shrinkage</span>
-                    </td>
-                    <td class="px-cell-padding-h py-4">
+                        {% if loss.reported %}
                         <div
                             class="inline-flex items-center gap-1.5 px-3 py-1 bg-on-tertiary-container/10 text-on-tertiary-container rounded-full text-xs font-label-bold border border-on-tertiary-container/10">
                             <span class="material-symbols-outlined text-xs"
                                 style="font-variation-settings: 'FILL' 1;">check_circle</span>
                             REPORTED
                         </div>
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-center">
-                        <button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-surface-container transition-colors opacity-80">
-                    <td class="px-cell-padding-h py-4">
-                        <input class="rounded-sm border-outline-variant text-secondary focus:ring-secondary"
-                            type="checkbox" />
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono">Oct 18, 2023</td>
-                    <td class="px-cell-padding-h py-4">
-                        <p class="font-label-bold text-label-bold">Insulin Glargine</p>
-                        <p class="text-xs text-on-surface-variant">3ml Pen Refills</p>
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono text-on-surface-variant">BCH-9901-K
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-right font-bold">5 Units</td>
-                    <td class="px-cell-padding-h py-4">
-                        <span class="bg-surface-container-high px-2 py-1 rounded text-xs font-label-bold">Cold Chain
-                            Failure</span>
-                    </td>
-                    <td class="px-cell-padding-h py-4">
-                        <div
-                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-on-tertiary-container/10 text-on-tertiary-container rounded-full text-xs font-label-bold border border-on-tertiary-container/10">
-                            <span class="material-symbols-outlined text-xs"
-                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            REPORTED
-                        </div>
-                    </td>
-                    <td class="px-cell-padding-h py-4 text-center">
-                        <button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors">
-                            <span class="material-symbols-outlined text-[20px]">more_vert</span>
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-surface-container transition-colors">
-                    <td class="px-cell-padding-h py-4">
-                        <input class="rounded-sm border-outline-variant text-secondary focus:ring-secondary"
-                            type="checkbox" />
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono">Oct 15, 2023</td>
-                    <td class="px-cell-padding-h py-4">
-                        <p class="font-label-bold text-label-bold">Diazepam 5mg</p>
-                        <p class="text-xs text-on-surface-variant">Controlled Substance</p>
-                    </td>
-                    <td class="px-cell-padding-h py-4 font-data-mono text-data-mono text-on-surface-variant">
-                        BCH-CONTROL-01</td>
-                    <td class="px-cell-padding-h py-4 text-right font-bold text-error">2 Units</td>
-                    <td class="px-cell-padding-h py-4">
-                        <span class="bg-error-container/20 text-error px-2 py-1 rounded text-xs font-label-bold">Missing
-                            During Audit</span>
-                    </td>
-                    <td class="px-cell-padding-h py-4">
+                        {% else %}
                         <div
                             class="inline-flex items-center gap-1.5 px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-label-bold border border-error/10">
                             <span class="w-2 h-2 bg-error rounded-full animate-pulse"></span>
                             UNREPORTED
                         </div>
+                        {% endif %}
                     </td>
                     <td class="px-cell-padding-h py-4 text-center">
+                        {% if not loss.reported %}
+                        <form method="POST" action="{{ url_for('mark_reported', loss_report_id=loss.loss_report_id) }}"
+                            style="display:inline;">
+                            <button type="submit"
+                                class="text-secondary font-label-bold text-label-bold hover:underline text-xs">Mark
+                                Reported</button>
+                        </form>
+                        {% else %}
                         <button class="p-1 hover:bg-surface-variant rounded text-on-surface-variant transition-colors">
                             <span class="material-symbols-outlined text-[20px]">more_vert</span>
                         </button>
+                        {% endif %}
                     </td>
                 </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-cell-padding-h py-8 text-center text-on-surface-variant">No losses
+                        recorded yet.</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

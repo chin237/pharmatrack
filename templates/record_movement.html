@@ -3,14 +3,12 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto w-full">
-    <!-- Page Header -->
     <div class="mb-8">
         <h2 class="font-headline-md text-display text-on-surface mb-2">Record Stock Movement</h2>
         <p class="font-body-md text-on-surface-variant">Update inventory levels with precise batch tracking and
             regulatory compliance.</p>
     </div>
 
-    <!-- Urgent Alert Banner (shown by JS when a controlled substance is selected) -->
     <div class="hidden mb-6 bg-error-container border-l-4 border-error p-4 flex items-start gap-4"
         id="controlled-alert">
         <span class="material-symbols-outlined text-on-error-container">warning</span>
@@ -21,15 +19,8 @@
         </div>
     </div>
 
-    <!--
-  Product/batch options below are placeholders. Once wired to real data,
-  render these with a Jinja loop, e.g.:
-  {% for product in products %}
-  <option data-controlled="{{ 'true' if product.is_controlled else 'false' }}" value="{{ product.id }}">{{ product.name }}</option>
-  {% endfor %}
--->
     <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg">
-        <form class="space-y-8" id="movement-form">
+        <form class="space-y-8" id="movement-form" method="POST">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
                 <div class="space-y-2">
                     <label class="block font-label-bold text-label-bold text-on-surface">Product Selector</label>
@@ -38,12 +29,12 @@
                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">medication</span>
                         <select
                             class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-4 py-3 text-body-md appearance-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                            id="product-selector">
+                            id="product-selector" required>
                             <option value="">Search or select product...</option>
-                            <option data-controlled="false" value="parac-500">Paracetamol 500mg (Generic)</option>
-                            <option data-controlled="false" value="amox-250">Amoxicillin 250mg Caps</option>
-                            <option data-controlled="true" value="morph-10">Morphine Sulfate 10mg (Controlled)</option>
-                            <option data-controlled="true" value="diaz-5">Diazepam 5mg Tabs (Controlled)</option>
+                            {% for product in products %}
+                            <option data-controlled="{{ 'true' if product.is_controlled else 'false' }}"
+                                value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
                         </select>
                         <span
                             class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
@@ -56,11 +47,8 @@
                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">barcode_scanner</span>
                         <select
                             class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-4 py-3 text-body-md appearance-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                            id="batch-selector">
-                            <option value="">Select active batch...</option>
-                            <option value="b2024-001">B2024-001 (Exp: Oct 2025 - Qty: 450)</option>
-                            <option value="b2024-005">B2024-005 (Exp: Jan 2026 - Qty: 120)</option>
-                            <option value="new">Add New Batch...</option>
+                            id="batch-selector" name="batch_id" required disabled>
+                            <option value="">Select a product first...</option>
                         </select>
                         <span
                             class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
@@ -74,7 +62,7 @@
                     <div class="relative">
                         <select
                             class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md appearance-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                            id="movement-type">
+                            id="movement-type" name="movement_type">
                             <option value="sale">Sale (Dispensing)</option>
                             <option value="receipt">Stock Receipt</option>
                             <option value="adjustment">Inventory Adjustment</option>
@@ -92,28 +80,37 @@
                     <div class="flex items-center">
                         <input
                             class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                            min="1" type="number" value="1" />
-                        <span class="ml-3 font-label-bold text-on-surface-variant whitespace-nowrap">Units / Tabs</span>
+                            min="1" type="number" name="quantity" value="1" required />
+                        <span class="ml-3 font-label-bold text-on-surface-variant whitespace-nowrap">Units</span>
                     </div>
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-2" id="adjustment-direction-container" style="display:none;">
+                    <label class="block font-label-bold text-label-bold text-on-surface">Direction</label>
+                    <select
+                        class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                        name="adjustment_direction">
+                        <option value="remove">Remove stock (-)</option>
+                        <option value="add">Add stock (+)</option>
+                    </select>
+                </div>
+                <div class="space-y-2" id="reference-container">
                     <label class="block font-label-bold text-label-bold text-on-surface" id="ref-label">Reference /
                         Invoice #</label>
                     <input
                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                        placeholder="REF-000000" type="text" />
+                        name="reference_number" id="reference-number-field" placeholder="REF-000000" type="text" />
+                    <input type="hidden" name="prescription_number" id="prescription-number-field">
                 </div>
             </div>
 
-            <!-- Shown by JS only for adjustment/loss/destruction movement types -->
             <div class="space-y-2" id="reason-container">
                 <label class="block font-label-bold text-label-bold text-on-surface">Reason for Movement</label>
                 <textarea
                     class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                    placeholder="Please specify the reason for this stock adjustment or loss..." rows="3"></textarea>
+                    name="reason" placeholder="Please specify the reason for this stock adjustment or loss..."
+                    rows="3"></textarea>
             </div>
 
-            <!-- Shown by JS for controlled substances OR transfer/return/destruction -->
             <div class="hidden animate-in fade-in slide-in-from-top-4 duration-300" id="counterparty-section">
                 <div class="p-6 bg-surface-container-high rounded-xl border border-outline-variant space-y-4">
                     <div class="flex items-center gap-2 mb-2">
@@ -126,14 +123,7 @@
                                 Name</label>
                             <input
                                 class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                                placeholder="Recipient or Provider name" type="text" />
-                        </div>
-                        <div class="space-y-2">
-                            <label class="block font-label-bold text-label-bold text-on-surface">Identification /
-                                License #</label>
-                            <input
-                                class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                                placeholder="Patient ID or Provider License" type="text" />
+                                name="counterparty_name" placeholder="Recipient or Provider name" type="text" />
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -141,17 +131,16 @@
                             Info</label>
                         <input
                             class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
-                            placeholder="Physical address or contact phone" type="text" />
+                            name="counterparty_address" placeholder="Physical address or contact phone" type="text" />
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-stack-gap pt-6 border-t border-outline-variant">
-                <button
-                    class="px-6 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface font-label-bold text-label-bold hover:bg-surface-container-high transition-colors active:scale-95"
-                    type="button">
+                <a href="{{ url_for('product_list') }}"
+                    class="px-6 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface font-label-bold text-label-bold hover:bg-surface-container-high transition-colors active:scale-95">
                     Cancel
-                </button>
+                </a>
                 <button
                     class="px-8 py-2.5 rounded-lg bg-secondary text-on-secondary font-label-bold text-label-bold hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-secondary/20"
                     type="submit">
@@ -159,54 +148,6 @@
                 </button>
             </div>
         </form>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="mt-10">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-headline-md text-headline-md text-on-surface">Recent Movements</h3>
-            <button class="text-secondary font-label-bold text-label-bold flex items-center gap-1">
-                View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
-        </div>
-        <div class="overflow-hidden rounded-lg border border-outline-variant">
-            <table class="w-full text-left bg-surface-container-lowest border-collapse">
-                <thead class="bg-surface-container text-on-surface-variant">
-                    <tr>
-                        <th class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold">Timestamp</th>
-                        <th class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold">Product</th>
-                        <th class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold">Type</th>
-                        <th class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold">Qty</th>
-                        <th class="py-cell-padding-v px-cell-padding-h font-label-bold text-label-bold text-right">Batch
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-outline-variant">
-                    <tr class="hover:bg-surface-container-low transition-colors">
-                        <td class="py-cell-padding-v px-cell-padding-h font-body-sm text-body-sm">Today, 10:45 AM</td>
-                        <td class="py-cell-padding-v px-cell-padding-h font-body-sm text-body-sm">Amoxicillin 250mg</td>
-                        <td class="py-cell-padding-v px-cell-padding-h">
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-on-tertiary-container/10 text-on-tertiary-container font-label-bold text-[10px] uppercase">Sale</span>
-                        </td>
-                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono">-20</td>
-                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono text-right">
-                            B2024-001</td>
-                    </tr>
-                    <tr class="hover:bg-surface-container-low transition-colors">
-                        <td class="py-cell-padding-v px-cell-padding-h font-body-sm text-body-sm">Today, 09:12 AM</td>
-                        <td class="py-cell-padding-v px-cell-padding-h font-body-sm text-body-sm">Diazepam 5mg</td>
-                        <td class="py-cell-padding-v px-cell-padding-h">
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full bg-on-secondary-fixed-variant/10 text-on-secondary-fixed-variant font-label-bold text-[10px] uppercase">Return</span>
-                        </td>
-                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono">+5</td>
-                        <td class="py-cell-padding-v px-cell-padding-h font-data-mono text-data-mono text-right">
-                            B2024-005</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
     </div>
 </div>
 {% endblock %}

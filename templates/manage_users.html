@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Manage Accounts - PharmaTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full">
+    <div class="mb-8">
+        <a href="{{ url_for('settings') }}"
+            class="text-secondary font-label-bold text-label-bold hover:underline">&larr; Back to Settings</a>
+        <h2 class="font-headline-md text-display text-on-surface mb-2 mt-2">Pharmacist Accounts</h2>
+        <p class="font-body-md text-on-surface-variant">Set a name, role, and password for each person who signs in on
+            this device. Only one admin account is allowed system-wide, so new accounts here are always pharmacists.</p>
+    </div>
+
+    {% if error %}
+    <div
+        class="mb-5 px-4 py-3 bg-error-container text-on-error-container rounded-lg text-body-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-base">error</span>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST"
+        class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg mb-6 grid grid-cols-1 md:grid-cols-4 gap-gutter items-end">
+        <div class="space-y-2">
+            <label class="block font-label-bold text-label-bold text-on-surface">Name</label>
+            <input
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                type="text" name="name" required>
+        </div>
+        <div class="space-y-2">
+            <label class="block font-label-bold text-label-bold text-on-surface">Password</label>
+            <input
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                type="password" name="password" minlength="8" required>
+        </div>
+        <input type="hidden" name="role" value="pharmacist">
+        <div class="space-y-2">
+            <label class="block font-label-bold text-label-bold text-on-surface">Role</label>
+            <input
+                class="w-full bg-surface-container-high border border-outline-variant rounded-lg px-4 py-3 text-body-md text-on-surface-variant"
+                type="text" value="Pharmacist" disabled>
+        </div>
+        <button
+            class="px-6 py-3 rounded-lg bg-secondary text-on-secondary font-label-bold text-label-bold hover:opacity-90 transition-all"
+            type="submit">Add Account</button>
+    </form>
+
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+                <tr>
+                    <th
+                        class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase">
+                        Name</th>
+                    <th
+                        class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase">
+                        Role</th>
+                    <th
+                        class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase text-right">
+                        Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                {% for user in users %}
+                <tr>
+                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">{{ user.name }}{% if
+                        user.id == current_user_id %} (you){% endif %}</td>
+                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant capitalize">{{
+                        user.role }}</td>
+                    <td class="px-6 py-cell-padding-v text-right">
+                        {% if user.id != current_user_id %}
+                        <form method="POST" action="{{ url_for('delete_user_route', user_id=user.id) }}"
+                            style="display:inline;" onsubmit="return confirm('Remove ' + '{{ user.name }}' + '?');">
+                            <button type="submit"
+                                class="text-error font-label-bold text-label-bold hover:underline text-sm">Remove</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

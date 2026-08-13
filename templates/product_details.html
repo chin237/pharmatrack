@@ -1,51 +1,43 @@
 {% extends "base.html" %}
-{% block title %}PharmaTrack - Product Detail{% endblock %}
+{% block title %}PharmaTrack - {{ product.name }}{% endblock %}
 
 {% block content %}
-<!-- High-Priority Alert Banner -->
+{% set urgent_batch = (product.batches | selectattr('status', 'in', ['Expired', 'Near Expiry']) | list | first) %}
+{% if urgent_batch %}
 <div class="bg-error-container border-l-4 border-error p-4 flex items-center justify-between rounded shadow-sm">
     <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-on-error-container">warning</span>
-        <span class="text-on-error-container font-label-bold text-label-bold">ALERT: 1 Batch of this product expires in
-            less than 30 days.</span>
+        <span class="text-on-error-container font-label-bold text-label-bold">
+            ALERT: Batch {{ urgent_batch.batch_number }} is {{ 'expired' if urgent_batch.status == 'Expired' else
+            'expiring soon' }} (Exp: {{ urgent_batch.expiry_date }}).
+        </span>
     </div>
     <button class="text-on-error-container font-label-bold text-label-bold underline">Review Stock</button>
 </div>
+{% endif %}
 
-<!--
-  Placeholder product data below. Once wired up, use product_id (passed
-  by the route) to fetch the real product and swap every hardcoded value
-  here for the matching field on that product object.
--->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-    <div class="lg:col-span-2 bg-white border border-outline-variant p-6 flex flex-col justify-between">
+    <div
+        class="lg:col-span-2 bg-surface-container-lowest border border-outline-variant p-6 flex flex-col justify-between">
         <div class="flex justify-between items-start">
             <div>
-                <span class="text-secondary font-label-bold text-label-bold tracking-wider mb-1 block">DRUG ID:
-                    PH-992-PARA</span>
-                <h2 class="text-display font-display text-on-surface mb-2">Paracetamol 500mg</h2>
-                <p class="text-on-surface-variant font-body-lg text-body-lg">Analgesic and antipyretic medication used
-                    to treat fever and mild to moderate pain.</p>
+                <span class="text-secondary font-label-bold text-label-bold tracking-wider mb-1 block">
+                    {% if product.barcode %}BARCODE: {{ product.barcode }}{% else %}ID: {{ product.id[:8] }}{% endif %}
+                </span>
+                <h2 class="text-display font-display text-on-surface mb-2">{{ product.name }}</h2>
+                <p class="text-on-surface-variant font-body-lg text-body-lg">
+                    {{ product.category or 'Uncategorized' }} · {{ product.dosage_form or 'Form not specified' }}
+                    {% if product.strength %} · {{ product.strength }}{% endif %}
+                    {% if product.is_controlled %} · <span class="text-error font-label-bold">Controlled
+                        Substance</span>{% endif %}
+                    {% if product.requires_prescription %} · Prescription Required{% endif %}
+                </p>
             </div>
             <div class="bg-surface-container-high px-4 py-2 rounded-xl flex items-center gap-2">
                 <span class="material-symbols-outlined text-secondary"
                     style="font-variation-settings: 'FILL' 1;">inventory</span>
-                <span class="text-on-surface font-headline-md text-headline-md">14,250 <span
-                        class="text-body-sm font-body-sm opacity-60">Total Units</span></span>
-            </div>
-        </div>
-        <div class="mt-8 flex flex-wrap gap-4">
-            <div class="flex items-center gap-2 border border-outline-variant px-4 py-2 rounded">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">category</span>
-                <span class="text-body-md font-body-md text-on-surface-variant">Category: Pain Relief</span>
-            </div>
-            <div class="flex items-center gap-2 border border-outline-variant px-4 py-2 rounded">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">medication</span>
-                <span class="text-body-md font-body-md text-on-surface-variant">Form: Tablet</span>
-            </div>
-            <div class="flex items-center gap-2 border border-outline-variant px-4 py-2 rounded">
-                <span class="material-symbols-outlined text-on-surface-variant text-sm">factory</span>
-                <span class="text-body-md font-body-md text-on-surface-variant">Manufacturer: PharmaLab SA</span>
+                <span class="text-on-surface font-headline-md text-headline-md">{{ "{:,}".format(product.total_stock) }}
+                    <span class="text-body-sm font-body-sm opacity-60">Total Units</span></span>
             </div>
         </div>
     </div>
@@ -53,30 +45,25 @@
     <!-- Action Panel -->
     <div class="bg-surface-container border border-outline-variant p-6 space-y-4">
         <h3 class="font-headline-md text-headline-md text-on-surface">Quick Actions</h3>
-        <!-- Wired to the record_movement route -->
         <a href="{{ url_for('record_movement') }}"
             class="w-full bg-secondary text-on-secondary py-3 flex items-center justify-center gap-2 rounded hover:opacity-90 transition-opacity font-label-bold text-label-bold">
             <span class="material-symbols-outlined">add_box</span>
             Record Movement
         </a>
-        <button
-            class="w-full bg-white border border-outline text-on-surface py-3 flex items-center justify-center gap-2 rounded hover:bg-surface-container-high transition-colors font-label-bold text-label-bold">
+        <a href="{{ url_for('edit_product', product_id=product.id) }}"
+            class="w-full bg-surface-container-lowest border border-outline text-on-surface py-3 flex items-center justify-center gap-2 rounded hover:bg-surface-container-high transition-colors font-label-bold text-label-bold">
             <span class="material-symbols-outlined">edit</span>
             Edit Product
-        </button>
-        <button
-            class="w-full bg-white border border-outline text-on-surface py-3 flex items-center justify-center gap-2 rounded hover:bg-surface-container-high transition-colors font-label-bold text-label-bold">
-            <span class="material-symbols-outlined">print</span>
-            Print Report
-        </button>
+        </a>
     </div>
 </div>
 
 <!-- Batches Section -->
-<section class="bg-white border border-outline-variant">
+<section class="bg-surface-container-lowest border border-outline-variant">
     <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
         <h3 class="font-headline-md text-headline-md text-on-surface">Active Batches</h3>
-        <span class="text-body-sm font-body-sm text-on-surface-variant">3 Active Batches Identified</span>
+        <span class="text-body-sm font-body-sm text-on-surface-variant">{{ product.batches | length }} Batch{{ 'es' if
+            product.batches | length != 1 else '' }}</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -85,9 +72,6 @@
                     <th
                         class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase">
                         Batch Number</th>
-                    <th
-                        class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase">
-                        Manufacturer Date</th>
                     <th
                         class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase">
                         Expiry Date</th>
@@ -100,78 +84,43 @@
                 </tr>
             </thead>
             <tbody>
+                {% for batch in product.batches %}
                 <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface">BN-2023-0102</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Jan 12, 2023
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Jan 12, 2025
-                    </td>
+                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface">{{
+                        batch.batch_number }}</td>
+                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">{{
+                        batch.expiry_date or '—' }}</td>
                     <td class="px-6 py-cell-padding-v">
+                        {% if batch.status == 'Healthy' %}
                         <span
-                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-label-bold bg-on-tertiary-container/10 text-on-tertiary-container border border-on-tertiary-container/20">
-                            Healthy
-                        </span>
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-label-bold bg-on-tertiary-container/10 text-on-tertiary-container border border-on-tertiary-container/20">Healthy</span>
+                        {% elif batch.status == 'Near Expiry' %}
+                        <span
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-label-bold bg-error-container text-on-error-container border border-error/20">Near
+                            Expiry</span>
+                        {% else %}
+                        <span
+                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-label-bold bg-error text-white border border-error/20">Expired</span>
+                        {% endif %}
                     </td>
                     <td
                         class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface text-right font-bold">
-                        5,000</td>
+                        {{ "{:,}".format(batch.quantity_remaining) }}</td>
                 </tr>
-                <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface">BN-2023-1188</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Nov 15, 2023
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Nov 15, 2024
-                    </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <span
-                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-label-bold bg-error-container text-on-error-container border border-error/20">
-                            Near Expiry
-                        </span>
-                    </td>
-                    <td
-                        class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface text-right font-bold">
-                        2,250</td>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-6 py-6 text-center text-on-surface-variant">No batches yet.</td>
                 </tr>
-                <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface">BN-2024-0012</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Feb 01, 2024
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Feb 01, 2026
-                    </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <span
-                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-label-bold bg-on-tertiary-container/10 text-on-tertiary-container border border-on-tertiary-container/20">
-                            Healthy
-                        </span>
-                    </td>
-                    <td
-                        class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-surface text-right font-bold">
-                        7,000</td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
 
 <!-- Movement History Section -->
-<!-- Added class "movement-history-section" so the filter-pill JS below can actually find this element (original selector referenced a class that didn't exist anywhere in the markup) -->
-<section class="movement-history-section bg-white border border-outline-variant">
+<section class="movement-history-section bg-surface-container-lowest border border-outline-variant">
     <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
-        <div class="flex items-center gap-3">
-            <h3 class="font-headline-md text-headline-md text-on-surface">Movement History</h3>
-            <div class="flex gap-2 ml-4">
-                <span
-                    class="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-label-bold uppercase cursor-pointer hover:bg-outline-variant transition-colors">All</span>
-                <span
-                    class="px-3 py-1 bg-surface-variant/20 rounded-full text-[10px] font-label-bold uppercase text-on-surface-variant cursor-pointer hover:bg-outline-variant transition-colors">Sales</span>
-                <span
-                    class="px-3 py-1 bg-surface-variant/20 rounded-full text-[10px] font-label-bold uppercase text-on-surface-variant cursor-pointer hover:bg-outline-variant transition-colors">Receipts</span>
-            </div>
-        </div>
-        <button class="flex items-center gap-1 text-secondary font-label-bold text-label-bold">
-            <span class="material-symbols-outlined text-sm">filter_list</span>
-            Filter Logs
-        </button>
+        <h3 class="font-headline-md text-headline-md text-on-surface">Movement History</h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -188,112 +137,39 @@
                         Reference</th>
                     <th
                         class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase">
-                        Source/Destination</th>
+                        Notes</th>
                     <th
                         class="px-6 py-cell-padding-v font-label-bold text-label-bold text-on-surface-variant uppercase text-right">
                         Quantity Change</th>
                 </tr>
             </thead>
             <tbody>
+                {% for m in product.movements %}
                 <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">Oct 24, 2023 • 14:22
+                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">{{ m.occurred_at }}
                     </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="material-symbols-outlined text-on-tertiary-container text-sm">shopping_cart</span>
-                            <span class="font-body-md text-body-md text-on-surface">Sale</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-secondary">INV-99021</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Front Counter
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-error text-right font-bold">-20
-                    </td>
-                </tr>
-                <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">Oct 24, 2023 • 11:05
-                    </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="material-symbols-outlined text-on-secondary-fixed-variant text-sm">download</span>
-                            <span class="font-body-md text-body-md text-on-surface">Receipt</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-secondary">PO-88210</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Main Warehouse
-                    </td>
+                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface capitalize">{{
+                        m.movement_type }}</td>
+                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-secondary">{{
+                        m.reference_number or '—' }}</td>
+                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">{{
+                        m.counterparty_name or m.reason or '—' }}</td>
                     <td
-                        class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-tertiary-container text-right font-bold">
-                        +1,000</td>
-                </tr>
-                <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">Oct 23, 2023 • 16:45
-                    </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-outline text-sm">sync_alt</span>
-                            <span class="font-body-md text-body-md text-on-surface">Transfer</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-secondary">TRF-0012</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Branch B Store
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-error text-right font-bold">
-                        -500</td>
-                </tr>
-                <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">Oct 22, 2023 • 09:12
-                    </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-on-error-container text-sm">dangerous</span>
-                            <span class="font-body-md text-body-md text-on-surface">Loss</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-secondary">LR-992</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Damaged in
-                        storage</td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-error text-right font-bold">-5
+                        class="px-6 py-cell-padding-v font-data-mono text-data-mono text-right font-bold {{ 'text-on-tertiary-container' if m.quantity > 0 else 'text-error' }}">
+                        {{ '+' if m.quantity > 0 else '' }}{{ m.quantity }}
                     </td>
                 </tr>
-                <tr class="zebra-row hover:bg-surface-container transition-colors">
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface">Oct 20, 2023 • 15:30
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-6 text-center text-on-surface-variant">No movements recorded yet.
                     </td>
-                    <td class="px-6 py-cell-padding-v">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-secondary text-sm">settings_suggest</span>
-                            <span class="font-body-md text-body-md text-on-surface">Adjustment</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-cell-padding-v font-data-mono text-data-mono text-secondary">ADJ-102</td>
-                    <td class="px-6 py-cell-padding-v font-body-md text-body-md text-on-surface-variant">Inventory Audit
-                    </td>
-                    <td
-                        class="px-6 py-cell-padding-v font-data-mono text-data-mono text-on-tertiary-container text-right font-bold">
-                        +2</td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
-    <div class="px-6 py-4 border-t border-outline-variant bg-surface-container-low flex justify-between items-center">
-        <p class="text-body-sm font-body-sm text-on-surface-variant">Showing latest 5 movements of 1,248 total records.
-        </p>
-        <button class="text-secondary font-label-bold text-label-bold hover:underline">View All Movements</button>
-    </div>
 </section>
-
-<!-- Quick Print FAB -->
-<div class="fixed bottom-8 right-8 flex flex-col gap-4">
-    <button
-        class="w-14 h-14 bg-secondary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
-        title="Print Labels">
-        <span class="material-symbols-outlined">label</span>
-    </button>
-</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='product_details.js') }}"></script>
 {% endblock %}

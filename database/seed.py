@@ -29,12 +29,11 @@ def seed():
     cur.execute("DELETE FROM product")
     cur.execute("DELETE FROM user")
 
-    # --- User ---
-    user_id = new_id()
-    cur.execute(
-        "INSERT INTO user (id, name, role, device_id) VALUES (?, ?, ?, ?)",
-        (user_id, "Jean Dupont", "Lead Pharmacist", "device-001")
-    )
+    # No demo users are created here anymore - people register their own
+    # account (with their own name, password, and chosen role) from the
+    # app's Register screen. Seeded product movements below are attributed
+    # to no one in particular (performed_by_user_id left NULL).
+
 
     # --- Products (matches names used across the UI screens) ---
     products = [
@@ -80,7 +79,7 @@ def seed():
             """INSERT INTO stock_movement
                (id, product_batch_id, movement_type, quantity, reference_number, performed_by_user_id, device_id)
                VALUES (?, ?, 'receipt', ?, ?, ?, ?)""",
-            (new_id(), batch_id, starting_qty, f"GRN-{new_id()[:6].upper()}", user_id, "device-001")
+            (new_id(), batch_id, starting_qty, f"GRN-{new_id()[:6].upper()}", None, "device-001")
         )
 
         # A small sale movement for realism (skip for the controlled/low-stock ones)
@@ -89,12 +88,13 @@ def seed():
                 """INSERT INTO stock_movement
                    (id, product_batch_id, movement_type, quantity, performed_by_user_id, device_id)
                    VALUES (?, ?, 'sale', ?, ?, ?)""",
-                (new_id(), batch_id, -80, user_id, "device-001")
+                (new_id(), batch_id, -80, None, "device-001")
             )
 
     conn.commit()
     conn.close()
     print("Seed data inserted: 5 products, 5 batches, movements included.")
+    print("No user accounts were created - register your own account from the app's Register screen.")
 
 
 if __name__ == '__main__':

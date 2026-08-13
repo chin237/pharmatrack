@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Settings - PharmaTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full">
+    <div class="mb-8">
+        <h2 class="font-headline-md text-display text-on-surface mb-2">System Settings</h2>
+        <p class="font-body-md text-on-surface-variant">Admin-only: configuration that applies to everyone using this
+            pharmacy's PharmaTrack. For personal display preferences, see Preferences instead.</p>
+    </div>
+
+    <form method="POST" class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg space-y-6 mb-6">
+        <div class="space-y-2">
+            <label class="block font-label-bold text-label-bold text-on-surface">Pharmacy Name</label>
+            <input
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                type="text" name="pharmacy_name" value="{{ pharmacy_name }}">
+            <p class="text-body-sm text-on-surface-variant">Shown across the app (not yet wired into every screen —
+                currently used for reference only).</p>
+        </div>
+
+        <div class="space-y-2">
+            <label class="block font-label-bold text-label-bold text-on-surface">Low Stock Threshold (units)</label>
+            <input
+                class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                type="number" name="low_stock_threshold" min="1" value="{{ low_stock_threshold }}">
+            <p class="text-body-sm text-on-surface-variant">Any product with total stock below this number is flagged
+                "Low Stock" on the Dashboard and Inventory pages.</p>
+        </div>
+
+        <div class="flex items-center justify-end pt-6 border-t border-outline-variant">
+            <button
+                class="px-8 py-2.5 rounded-lg bg-secondary text-on-secondary font-label-bold text-label-bold hover:opacity-90 transition-all shadow-lg shadow-secondary/20"
+                type="submit">Save Settings</button>
+        </div>
+    </form>
+
+    <div
+        class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg mb-6 flex items-center justify-between">
+        <div>
+            <h3 class="font-headline-md text-headline-md text-on-surface">Pharmacist Accounts</h3>
+            <p class="text-body-sm text-on-surface-variant mt-1">Add or remove who can sign in to this device.</p>
+        </div>
+        <a href="{{ url_for('manage_users') }}"
+            class="px-5 py-2.5 rounded-lg bg-secondary text-on-secondary font-label-bold text-label-bold hover:opacity-90 transition-all">Manage
+            Accounts</a>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg">
+        <h3 class="font-headline-md text-headline-md text-on-surface mb-4">About</h3>
+        <div class="space-y-2 text-body-md text-on-surface-variant">
+            <p><span class="font-label-bold text-on-surface">Products tracked:</span> {{ total_products }}</p>
+            <p><span class="font-label-bold text-on-surface">Storage:</span> Local database on this device
+                (offline-first)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

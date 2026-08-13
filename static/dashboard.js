@@ -9,16 +9,4 @@ document.addEventListener('DOMContentLoaded', () => {
             row.classList.remove('bg-secondary-container/5');
         });
     });
-
-    // Simulated sync action for the header sync button
-    const syncBtn = document.getElementById('sync-button');
-    if (syncBtn) {
-        syncBtn.addEventListener('click', () => {
-            syncBtn.classList.add('animate-spin');
-            setTimeout(() => {
-                syncBtn.classList.remove('animate-spin');
-                alert('Synchronizing with Central Depot... Success.');
-            }, 1500);
-        });
-    }
 });

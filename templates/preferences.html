@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Preferences - PharmaTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto w-full">
+    <div class="mb-8">
+        <h2 class="font-headline-md text-display text-on-surface mb-2">Preferences</h2>
+        <p class="font-body-md text-on-surface-variant">Personal display settings for this device. These don't affect
+            other users.</p>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg mb-6">
+        <h3 class="font-headline-md text-headline-md text-on-surface mb-4">Appearance</h3>
+        <label class="flex items-center justify-between cursor-pointer">
+            <span class="font-label-bold text-label-bold text-on-surface">Dark Mode</span>
+            <input type="checkbox" id="dark-mode-toggle"
+                class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary cursor-pointer">
+        </label>
+        <p class="text-body-sm text-on-surface-variant mt-2">Applies immediately and is remembered on this device.</p>
+    </div>
+
+    <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg">
+        <h3 class="font-headline-md text-headline-md text-on-surface mb-4">Language / Langue</h3>
+        <div class="flex gap-3">
+            <button
+                class="flex-1 px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-high font-label-bold text-label-bold text-on-surface"
+                disabled>
+                English
+            </button>
+            <button
+                class="flex-1 px-4 py-3 rounded-lg border border-outline-variant bg-surface font-label-bold text-label-bold text-on-surface-variant"
+                disabled title="Full French translation not yet implemented">
+                Français
+            </button>
+        </div>
+        <p class="text-body-sm text-on-surface-variant mt-3">
+            Full French translation is planned but not yet implemented across every screen — see project notes.
+        </p>
+    </div>
+</div>
+{% endblock %}

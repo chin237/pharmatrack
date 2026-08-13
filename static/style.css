@@ -3,14 +3,17 @@
     display: inline-block;
     vertical-align: middle;
 }
-body { font-family: 'Inter', sans-serif; }
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-background);
+}
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #c6c6cd; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #76777d; }
 .table-container { height: calc(100vh - 280px); overflow-y: auto; }
 .status-pill { padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; text-transform: uppercase; }
-.zebra-row:nth-child(even) { background-color: #f8fafc; }
+.zebra-row:nth-child(even) { background-color: var(--color-surface-container-low); }
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
 .no-scrollbar::-webkit-scrollbar { display: none; }

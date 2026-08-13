@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Add Product - PharmaTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto w-full">
+    <div class="mb-8">
+        <h2 class="font-headline-md text-display text-on-surface mb-2">Add Product</h2>
+        <p class="font-body-md text-on-surface-variant">Register a new drug into inventory — scan its barcode or enter
+            details manually.</p>
+    </div>
+
+    <!-- Barcode scan field: a USB scanner acts like a keyboard, typing the code
+     then pressing Enter automatically. This field just needs to be focused
+     when that happens - see product-scan.js for the lookup logic. -->
+    <div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg mb-6">
+        <label class="block font-label-bold text-label-bold text-on-surface mb-2">Scan Barcode</label>
+        <div class="relative">
+            <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">barcode_scanner</span>
+            <input
+                class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                type="text" id="barcode-scan-field" name="barcode"
+                placeholder="Scan a barcode, or type it and press Enter..." autocomplete="off" autofocus />
+        </div>
+        <p id="barcode-status" class="mt-2 text-body-sm"></p>
+    </div>
+
+    <form method="POST" id="add-product-form"
+        class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="space-y-2">
+                <label class="block font-label-bold text-label-bold text-on-surface">Product Name *</label>
+                <input
+                    class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                    type="text" name="name" id="name" required>
+            </div>
+            <div class="space-y-2">
+                <label class="block font-label-bold text-label-bold text-on-surface">Category</label>
+                <input
+                    class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                    type="text" name="category" placeholder="e.g. Antibiotics">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="space-y-2">
+                <label class="block font-label-bold text-label-bold text-on-surface">Dosage Form</label>
+                <select
+                    class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                    name="dosage_form">
+                    <option value="">Select...</option>
+                    <option value="Tablet">Tablet</option>
+                    <option value="Capsule">Capsule</option>
+                    <option value="Syrup">Syrup</option>
+                    <option value="Injection">Injection</option>
+                    <option value="Cream">Cream</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="block font-label-bold text-label-bold text-on-surface">Strength</label>
+                <input
+                    class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                    type="text" name="strength" placeholder="e.g. 500mg">
+            </div>
+        </div>
+
+        <div class="flex gap-6">
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="requires_prescription"
+                    class="rounded-sm border-outline-variant text-secondary focus:ring-secondary">
+                <span class="font-label-bold text-label-bold text-on-surface">Requires Prescription</span>
+            </label>
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="is_controlled" id="is_controlled"
+                    class="rounded-sm border-outline-variant text-secondary focus:ring-secondary">
+                <span class="font-label-bold text-label-bold text-on-surface">Controlled Substance</span>
+            </label>
+        </div>
+
+        <div class="pt-4 border-t border-outline-variant">
+            <h3 class="font-headline-md text-headline-md text-on-surface mb-4">Initial Batch</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+                <div class="space-y-2">
+                    <label class="block font-label-bold text-label-bold text-on-surface">Batch Number</label>
+                    <input
+                        class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                        type="text" name="batch_number" placeholder="e.g. BN-2026-001">
+                </div>
+                <div class="space-y-2">
+                    <label class="block font-label-bold text-label-bold text-on-surface">Expiry Date</label>
+                    <input
+                        class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                        type="date" name="expiry_date">
+                </div>
+                <div class="space-y-2">
+                    <label class="block font-label-bold text-label-bold text-on-surface">Initial Quantity</label>
+                    <input
+                        class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all"
+                        type="number" name="initial_quantity" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-stack-gap pt-6 border-t border-outline-variant">
+            <a href="{{ url_for('product_list') }}"
+                class="px-6 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface font-label-bold text-label-bold hover:bg-surface-container-high transition-colors">Cancel</a>
+            <button
+                class="px-8 py-2.5 rounded-lg bg-secondary text-on-secondary font-label-bold text-label-bold hover:opacity-90 transition-all shadow-lg shadow-secondary/20"
+                type="submit">Save Product</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='product-scan.js') }}"></script>
+{% endblock %}

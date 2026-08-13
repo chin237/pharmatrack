@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS product (
     category TEXT,
     strength TEXT,
     dosage_form TEXT,
+    barcode TEXT UNIQUE,
     requires_prescription INTEGER NOT NULL DEFAULT 0,  -- 0 = false, 1 = true
     is_controlled INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -62,6 +63,15 @@ CREATE TABLE IF NOT EXISTS loss_report (
 
 -- Helpful indexes for the queries the UI will actually run
 CREATE INDEX IF NOT EXISTS idx_batch_product ON product_batch(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_barcode ON product(barcode);
 CREATE INDEX IF NOT EXISTS idx_movement_batch ON stock_movement(product_batch_id);
 CREATE INDEX IF NOT EXISTS idx_movement_synced ON stock_movement(synced_at);
 CREATE INDEX IF NOT EXISTS idx_loss_movement ON loss_report(stock_movement_id);
+
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
+
+INSERT OR IGNORE INTO settings (key, value) VALUES ('low_stock_threshold', '100');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('pharmacy_name', 'PharmaTrack Pharmacy');

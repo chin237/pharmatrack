@@ -36,7 +36,9 @@ def _get_resource_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
-DB_PATH = os.path.join(_get_base_dir(), 'pharmacy.db')
+# Tests and deployment can provide a separate database path. Normal desktop
+# use still defaults to pharmacy.db next to the application.
+DB_PATH = os.environ.get('PHARMATRACK_DB_PATH') or os.path.join(_get_base_dir(), 'pharmacy.db')
 SCHEMA_PATH = os.path.join(_get_resource_dir(), 'database', 'schema.sql') \
     if getattr(sys, 'frozen', False) \
     else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'schema.sql')
@@ -45,6 +47,9 @@ SCHEMA_PATH = os.path.join(_get_resource_dir(), 'database', 'schema.sql') \
 def get_db_connection():
     """Opens a connection to pharmacy.db. Caller is responsible for closing it."""
     conn = sqlite3.connect(DB_PATH)
+    # SQLite disables foreign-key enforcement by default; it must be enabled
+    # separately for every connection.
+    conn.execute("PRAGMA foreign_keys = ON")
     conn.row_factory = sqlite3.Row  # lets you access columns by name, e.g. row['name']
     return conn
 

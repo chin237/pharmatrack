@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, abort, session, Response
-import webview
-import threading
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import os
 import csv
 import io
@@ -18,8 +18,9 @@ from database.queries import (
     get_alert_count,
     get_users, get_user_by_id, create_user, delete_user, authenticate_user, user_name_exists,
     admin_exists,
-    get_all_movements_for_export
+    get_all_movements_for_export, is_token_revoked
 )
+from api import api_v1_bp
 
 # Always ensure tables exist on startup. Safe to run every time because
 # schema.sql uses CREATE TABLE IF NOT EXISTS - this also self-heals a
@@ -31,7 +32,50 @@ app = Flask(__name__)
 # Random key each launch is intentional: it means any previous session cookie
 # stops working, so the app always asks "who's using it?" on a fresh start -
 # reasonable for a shared desktop station used across shifts.
-app.secret_key = os.urandom(24)
+app.secret_key = os.urandom(32)
+is_production = os.environ.get('PHARMATRACK_ENV', '').lower() == 'production'
+jwt_secret = os.environ.get('JWT_SECRET_KEY')
+if is_production and not jwt_secret:
+    raise RuntimeError('JWT_SECRET_KEY must be set when PHARMATRACK_ENV=production.')
+
+# A development secret is safe only for local testing because it changes on
+# restart. Production requires a persistent secret supplied by the host.
+app.config['JWT_SECRET_KEY'] = jwt_secret or os.urandom(64)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(
+    minutes=int(os.environ.get('JWT_ACCESS_TOKEN_MINUTES', '30'))
+)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(
+    days=int(os.environ.get('JWT_REFRESH_TOKEN_DAYS', '30'))
+)
+app.config['JWT_TOKEN_LOCATION'] = ['headers']
+jwt = JWTManager(app)
+
+
+@jwt.token_in_blocklist_loader
+def is_revoked_token(_jwt_header, jwt_payload):
+    return is_token_revoked(jwt_payload['jti'])
+
+
+@jwt.unauthorized_loader
+def missing_token(reason):
+    return jsonify(error='Authentication is required.', detail=reason), 401
+
+
+@jwt.invalid_token_loader
+def invalid_token(reason):
+    return jsonify(error='Invalid authentication token.', detail=reason), 422
+
+
+@jwt.expired_token_loader
+def expired_token(_jwt_header, _jwt_payload):
+    return jsonify(error='Authentication token has expired.'), 401
+
+
+@jwt.revoked_token_loader
+def revoked_token(_jwt_header, _jwt_payload):
+    return jsonify(error='Authentication token has been revoked.'), 401
+
+app.register_blueprint(api_v1_bp)
 
 # Basic login-attempt limiting. In-memory is fine here: this is a single
 # desktop process, not a multi-server deployment, and lockouts don't need
@@ -273,7 +317,7 @@ def edit_product(product_id):
         abort(404)
     return render_template('edit_product.html', active_page='inventory', product=product)
 
-@app.route('/preferences', methods=['GET', 'POST'])
+@app.route('/preferences')
 @login_required
 def preferences():
     """Open to every logged-in user: personal display preferences
@@ -286,6 +330,9 @@ def settings():
     """Admin-only: system-wide configuration, not personal preferences."""
     if request.method == 'POST':
         set_setting('pharmacy_name', request.form.get('pharmacy_name', 'PharmaTrack Pharmacy'))
+        set_setting('pharmacy_address', request.form.get('pharmacy_address', ''))
+        set_setting('pharmacy_latitude', request.form.get('pharmacy_latitude', ''))
+        set_setting('pharmacy_longitude', request.form.get('pharmacy_longitude', ''))
         set_setting('low_stock_threshold', request.form.get('low_stock_threshold', '100'))
         return redirect(url_for('settings'))
 
@@ -293,6 +340,9 @@ def settings():
         'settings.html',
         active_page='settings',
         pharmacy_name=get_setting('pharmacy_name', 'PharmaTrack Pharmacy'),
+        pharmacy_address=get_setting('pharmacy_address', ''),
+        pharmacy_latitude=get_setting('pharmacy_latitude', ''),
+        pharmacy_longitude=get_setting('pharmacy_longitude', ''),
         low_stock_threshold=get_setting('low_stock_threshold', '100'),
         total_products=len(get_product_list()),
     )
@@ -377,6 +427,8 @@ def start_flask():
     app.run(port=5000, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
+    import threading
+    import webview
     threading.Thread(target=start_flask, daemon=True).start()
     webview.create_window('PharmaTrack', 'http://127.0.0.1:5000')
     webview.start()

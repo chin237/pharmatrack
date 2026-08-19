@@ -7,6 +7,32 @@ from datetime import datetime, date
 from database.db import get_db_connection
 
 
+def revoke_token(jti, token_type, user_id, expires_at):
+    """Store a JWT identifier so it can no longer be used."""
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            """INSERT OR IGNORE INTO token_blocklist
+               (jti, token_type, user_id, expires_at) VALUES (?, ?, ?, ?)""",
+            (jti, token_type, user_id, expires_at),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def is_token_revoked(jti):
+    """Return whether a JWT identifier has been revoked."""
+    conn = get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM token_blocklist WHERE jti = ?", (jti,)
+        ).fetchone()
+        return row is not None
+    finally:
+        conn.close()
+
+
 def get_product_list(search=None):
     """
     Returns one row per product with:
@@ -69,6 +95,43 @@ def get_product_list(search=None):
         })
     return products
 
+def get_public_inventory(search=None):
+    """Returns safe product information for the public/read-only API.
+
+    Controlled substances and exact stock quantities are deliberately
+    excluded - only whether a product is in stock at all. Keep this
+    separate from get_product_list so callers cannot accidentally expose
+    restricted fields by filtering a richer response.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    base_query = """
+        SELECT p.id, p.name, p.category, p.strength, p.dosage_form,
+               p.requires_prescription,
+               COALESCE(SUM(sm.quantity), 0) AS current_stock
+        FROM product p
+        LEFT JOIN product_batch pb ON pb.product_id = p.id
+        LEFT JOIN stock_movement sm ON sm.product_batch_id = pb.id
+        WHERE p.is_controlled = 0
+    """
+    if search:
+        cur.execute(base_query + " AND p.name LIKE ? GROUP BY p.id ORDER BY p.name", (f"%{search}%",))
+    else:
+        cur.execute(base_query + " GROUP BY p.id ORDER BY p.name", ())
+    rows = cur.fetchall()
+    conn.close()
+    return [
+        {
+            "id": row["id"],
+            "name": row["name"],
+            "category": row["category"] or "—",
+            "strength": row["strength"] or "—",
+            "dosage_form": row["dosage_form"] or "—",
+            "requires_prescription": bool(row["requires_prescription"]),
+            "in_stock": row["current_stock"] > 0,
+        }
+        for row in rows
+    ]
 
 def get_product_detail(product_id):
     """
@@ -272,6 +335,21 @@ def create_movement(product_batch_id, movement_type, quantity, adjustment_direct
     conn = get_db_connection()
     cur = conn.cursor()
     try:
+        # Serialize stock writes for this SQLite database. Without this, two
+        # simultaneous sales could both read the same balance and oversell.
+        cur.execute("BEGIN IMMEDIATE")
+        if signed_quantity < 0:
+            cur.execute(
+                """SELECT COALESCE(SUM(quantity), 0) AS quantity_remaining
+                   FROM stock_movement WHERE product_batch_id = ?""",
+                (product_batch_id,),
+            )
+            quantity_remaining = cur.fetchone()["quantity_remaining"]
+            if quantity_remaining + signed_quantity < 0:
+                raise ValueError(
+                    f"Insufficient stock. Only {quantity_remaining} unit(s) remain in this batch."
+                )
+
         movement_id = str(uuid.uuid4())
         cur.execute(
             """INSERT INTO stock_movement
@@ -557,10 +635,17 @@ def user_name_exists(name):
 
 
 def create_user(name, role, password):
-    """role should be 'admin' or 'pharmacist'. Password is hashed before
-    storage - the plaintext password is never saved anywhere."""
+    """Create an account with a supported role and hashed password."""
     import uuid
     from werkzeug.security import generate_password_hash
+
+    name = str(name).strip()
+    if not name:
+        raise ValueError("Name is required.")
+    if role not in {"admin", "pharmacist", "user"}:
+        raise ValueError("Unsupported user role.")
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters.")
 
     conn = get_db_connection()
     cur = conn.cursor()

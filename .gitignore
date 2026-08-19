@@ -3,7 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
-# C extensions
+# C 
 *.so
 
 # Distribution / packaging
@@ -237,4 +237,4 @@ dist/
 
 # OS files
 .DS_Store
-Thumbs.db
+Thumbs.dbextensions

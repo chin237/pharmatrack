@@ -61,12 +61,23 @@ CREATE TABLE IF NOT EXISTS loss_report (
     FOREIGN KEY (stock_movement_id) REFERENCES stock_movement(id)
 );
 
+-- Revoked access/refresh tokens. This lets a user sign out before a token
+-- naturally expires, and lets an admin invalidate a compromised token.
+CREATE TABLE IF NOT EXISTS token_blocklist (
+    jti TEXT PRIMARY KEY,
+    token_type TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    revoked_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Helpful indexes for the queries the UI will actually run
 CREATE INDEX IF NOT EXISTS idx_batch_product ON product_batch(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_barcode ON product(barcode);
 CREATE INDEX IF NOT EXISTS idx_movement_batch ON stock_movement(product_batch_id);
 CREATE INDEX IF NOT EXISTS idx_movement_synced ON stock_movement(synced_at);
 CREATE INDEX IF NOT EXISTS idx_loss_movement ON loss_report(stock_movement_id);
+CREATE INDEX IF NOT EXISTS idx_blocklist_expires ON token_blocklist(expires_at);
 
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,

@@ -1,3 +1,4 @@
 Flask
 pywebview
 Flask-JWT-Extended
+waitress
